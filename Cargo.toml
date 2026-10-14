@@ -6,7 +6,7 @@ authors = ["nssm-rs Contributors"]
 description = "A modern, reliable service manager and process supervisor inspired by NSSM, written in Rust"
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/mahir/nssm-rs"
+repository = "https://github.com/mahirgul/nssm-rs"
 keywords = ["nssm", "service", "supervisor", "daemon", "windows-service"]
 categories = ["command-line-utilities", "os"]
 

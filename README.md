@@ -33,7 +33,7 @@ Since original NSSM was in the public domain, `nssm-rs` provides a **clean-room 
 ### Build
 
 ```bash
-git clone https://github.com/mahir/nssm-rs.git
+git clone https://github.com/mahirgul/nssm-rs.git
 cd nssm-rs
 cargo build --release
 ```
