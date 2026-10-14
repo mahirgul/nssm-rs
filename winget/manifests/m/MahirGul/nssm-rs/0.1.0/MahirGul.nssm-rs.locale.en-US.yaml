@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.12.0.schema.json
+
+PackageIdentifier: MahirGul.nssm-rs
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: Mahir Gül
+PublisherUrl: https://github.com/mahirgul
+PublisherSupportUrl: https://github.com/mahirgul/nssm-rs/issues
+PackageName: nssm-rs
+PackageUrl: https://github.com/mahirgul/nssm-rs
+License: MIT
+LicenseUrl: https://github.com/mahirgul/nssm-rs/blob/main/LICENSE
+ShortDescription: Modern, cross-platform Non-Sucking Service Manager rewritten in Rust
+Description: |-
+  nssm-rs is a modern, high-performance, clean-room rewrite of NSSM (Non-Sucking Service Manager) in Rust.
+  It allows running any program, batch script, or executable as a Windows Service or background Linux daemon.
+  Features include native Win32 Service Controller integration, automatic restart on failure with exponential backoff,
+  standard I/O redirection, and environment variable configuration.
+Moniker: nssm-rs
+Tags:
+- nssm
+- service
+- windows-service
+- service-manager
+- daemon
+- rust
+- cli
+ReleaseNotes: 'Initial v0.1.0 release: Full NSSM CLI and Win32 service runner compatibility in Rust.'
+ReleaseNotesUrl: https://github.com/mahirgul/nssm-rs/releases/tag/v0.1.0
+ManifestType: defaultLocale
+ManifestVersion: 1.12.0

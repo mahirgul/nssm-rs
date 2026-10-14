@@ -47,7 +47,7 @@ jobs:
       - name: Build Release Binary
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Package Windows Binary (.zip)
+      - name: Package Windows Binary (.zip & .exe)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
@@ -56,6 +56,11 @@ jobs:
           Copy-Item "target/${{ matrix.target }}/release/nssm-rs.exe" -Destination $artifactName/
           Copy-Item "README.md", "LICENSE" -Destination $artifactName/
           Compress-Archive -Path "$artifactName/*" -DestinationPath "$artifactName.zip"
+          if ("${{ matrix.target }}" -eq "x86_64-pc-windows-msvc") {
+            Copy-Item "target/${{ matrix.target }}/release/nssm-rs.exe" -Destination "nssm-rs-windows-x86_64.exe"
+          } else {
+            Copy-Item "target/${{ matrix.target }}/release/nssm-rs.exe" -Destination "nssm-rs-windows-i686.exe"
+          }
           echo "ARTIFACT_PATH=$artifactName.zip" >> $env:GITHUB_ENV
 
       - name: Package Linux Binary (.tar.gz)
@@ -78,5 +83,22 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.ARTIFACT_PATH }}
+          files: |
+            ${{ env.ARTIFACT_PATH }}
+            nssm-rs-windows-*.exe
           generate_release_notes: true
+
+  winget-publish:
+    name: Publish to WinGet
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Wait for release assets propagation
+        run: sleep 30
+
+      - name: Submit package to WinGet
+        uses: vedantmgoyal2009/winget-releaser@v2
+        with:
+          identifier: MahirGul.nssm-rs
+          token: ${{ secrets.WINGET_TOKEN }}
