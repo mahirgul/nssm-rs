@@ -2,11 +2,12 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-stable-brightgreen.svg)](https://www.rust-lang.org/)
-[![Website](https://img.shields.io/badge/Live-Demo%20%26%20Docs-amber.svg)](docs/index.html)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20(x64%20%7C%20x86)-0078d4.svg)](https://github.com/mahirgul/nssm-rs/releases)
+[![Website](https://img.shields.io/badge/Live-Windows%20Demo%20%26%20Docs-0078d4.svg)](https://mahirgul.github.io/nssm-rs/)
 
-A modern, memory-safe, reliable service manager and process supervisor inspired by **NSSM (Non-Sucking Service Manager)**, written in pure Rust.
+A modern, memory-safe, reliable **Windows Service Manager** inspired by **NSSM (Non-Sucking Service Manager)**, written in pure Rust.
 
-Since original NSSM was in the public domain, `nssm-rs` provides a **clean-room implementation** written from scratch in Rust under the permissive **MIT License**. It brings modern reliability, cross-platform process supervision, and seamless service lifecycle management to both **Windows** and **Linux/Unix**.
+Turn any Windows executable, Python script, Node.js app, or batch script into a reliable background native **Windows Service** managed directly through the Windows Service Control Manager (`services.msc`). Includes automatic crash throttling, stdout/stderr log rotation, and graceful shutdown.
 
 ---
 

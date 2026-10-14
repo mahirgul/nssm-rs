@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>nssm-rs — The Non-Sucking Service Manager Reborn in Rust</title>
-  <meta name="description" content="Clean-room MIT-licensed service manager and process supervisor inspired by NSSM. Supports Windows Service Control Manager, Linux systemd, and automatic crash throttling.">
+  <title>nssm-rs — The Windows Service Manager Reborn in Rust</title>
+  <meta name="description" content="Clean-room MIT-licensed Windows Service Manager inspired by NSSM. Run any application or script as a reliable native Windows Service with automatic crash throttling and log rotation.">
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,75 +19,82 @@
       theme: {
         extend: {
           colors: {
-            brand: {
-              400: '#f59e0b',
-              500: '#d97706',
-              600: '#b45309',
+            win: {
+              400: '#00adef',
+              500: '#0078d4',
+              600: '#106ebe',
             },
             accent: {
-              400: '#38bdf8',
-              500: '#0284c7',
+              400: '#f59e0b',
+              500: '#d97706',
             },
             surface: {
-              950: '#090b10',
-              900: '#0e121a',
-              850: '#141a26',
-              800: '#1b2333',
-              700: '#273248',
+              950: '#0c0f17',
+              900: '#111624',
+              850: '#171f33',
+              800: '#1f2b45',
+              700: '#2b3b5e',
             }
           },
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
-            mono: ['Fira Code', 'monospace'],
+            mono: ['Fira Code', 'Consolas', 'monospace'],
           }
         }
       }
     }
   </script>
   <style>
-    ::selection { background: #f59e0b; color: #090b10; }
+    ::selection { background: #0078d4; color: #ffffff; }
     .glass-card {
-      background: rgba(14, 18, 26, 0.8);
+      background: rgba(17, 22, 36, 0.85);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(0, 120, 212, 0.18);
+    }
+    .powershell-window {
+      background: #012456;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     }
   </style>
 </head>
-<body class="bg-surface-950 text-slate-100 font-sans antialiased selection:bg-brand-400 selection:text-black">
+<body class="bg-surface-950 text-slate-100 font-sans antialiased selection:bg-win-500 selection:text-white">
 
   <!-- Glow Background -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    <div class="absolute -top-40 right-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl"></div>
-    <div class="absolute top-1/2 -left-40 w-96 h-96 bg-sky-600/10 rounded-full blur-3xl"></div>
+    <div class="absolute -top-40 right-1/4 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 -left-40 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl"></div>
   </div>
 
   <div class="relative z-10 flex flex-col min-h-screen">
 
-    <!-- Navbar -->
+    <!-- Top Navbar -->
     <header class="border-b border-slate-800/80 bg-surface-950/80 backdrop-blur sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 font-bold text-surface-950">
-            <i data-lucide="cog" class="w-5 h-5"></i>
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-400 to-sky-600 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white font-bold">
+            <i data-lucide="monitor" class="w-5 h-5"></i>
           </div>
           <span class="font-bold text-xl tracking-tight text-white flex items-center">
-            nssm<span class="text-amber-400">-rs</span>
+            nssm<span class="text-sky-400">-rs</span>
           </span>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono">v0.1.0</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-sky-400 border border-blue-500/20 font-mono">Windows x64 / x86</span>
         </div>
 
         <nav class="hidden md:flex items-center space-x-8 text-sm text-slate-300 font-medium">
-          <a href="#features" class="hover:text-amber-400 transition-colors">Features</a>
-          <a href="#playground" class="hover:text-amber-400 transition-colors">Interactive CLI</a>
-          <a href="#parameters" class="hover:text-amber-400 transition-colors">Parameters</a>
-          <a href="#quickstart" class="hover:text-amber-400 transition-colors">Quickstart</a>
-          <a href="#comparison" class="hover:text-amber-400 transition-colors">Comparison</a>
+          <a href="#features" class="hover:text-sky-400 transition-colors">Windows Features</a>
+          <a href="#powershell" class="hover:text-sky-400 transition-colors">PowerShell Demo</a>
+          <a href="#parameters" class="hover:text-sky-400 transition-colors">Service Parameters</a>
+          <a href="#downloads" class="hover:text-sky-400 transition-colors">Downloads (.exe)</a>
+          <a href="#comparison" class="hover:text-sky-400 transition-colors">Comparison</a>
         </nav>
 
         <div class="flex items-center space-x-3">
-          <a href="https://github.com/mahirgul/nssm-rs" target="_blank" class="flex items-center space-x-2 text-xs font-semibold px-4 py-2 rounded-lg bg-surface-800 hover:bg-surface-700 border border-slate-700 text-slate-200 transition-all">
+          <a href="https://github.com/mahirgul/nssm-rs/releases" target="_blank" class="flex items-center space-x-2 text-xs font-semibold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-md shadow-blue-600/30">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Download .EXE</span>
+          </a>
+          <a href="https://github.com/mahirgul/nssm-rs" target="_blank" class="flex items-center space-x-2 text-xs font-semibold px-3 py-2 rounded-lg bg-surface-800 hover:bg-surface-700 border border-slate-700 text-slate-200 transition-all">
             <i data-lucide="github" class="w-4 h-4"></i>
-            <span>GitHub</span>
           </a>
         </div>
       </div>
@@ -96,147 +103,151 @@
     <!-- Hero Section -->
     <section class="pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center max-w-5xl mx-auto">
       <div class="flex flex-wrap items-center justify-center gap-2 mb-6">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-sky-400 border border-blue-500/20">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1.5"></i> Native Windows Service (SCM)
+        </span>
         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          <i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1.5"></i> MIT Licensed
-        </span>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-          <i data-lucide="shield" class="w-3.5 h-3.5 mr-1.5"></i> Clean-Room Implementation
-        </span>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20">
-          Windows SCM &amp; Linux systemd
+          <i data-lucide="shield" class="w-3.5 h-3.5 mr-1.5"></i> MIT Licensed
         </span>
         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
-          Crash Throttle Engine
+          Windows Server 2025 &amp; Windows 11 Ready
+        </span>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          100% Safe Rust
         </span>
       </div>
 
       <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
-        The Non-Sucking Service Manager <br><span class="bg-gradient-to-r from-amber-400 via-orange-400 to-sky-400 bg-clip-text text-transparent">Reborn in Rust</span>
+        The Non-Sucking <br><span class="bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Windows Service Manager</span> <br>Reborn in Rust
       </h1>
       <p class="text-lg sm:text-xl text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed font-light">
-        Transform any console application, script, or executable into a reliable background system service. Featuring automatic restart throttling, file log rotation, and graceful signal handling.
+        A drop-in modern replacement for classic NSSM. Turn any Windows executable, Python script, Node.js app, or batch file into a rock-solid background Windows Service with intelligent restart throttling and automatic log rotation.
       </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="#quickstart" class="w-full sm:w-auto flex items-center justify-center px-6 py-3 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-surface-950 font-bold transition-all shadow-lg shadow-amber-500/25">
-          <i data-lucide="terminal" class="w-5 h-5 mr-2"></i> Quick Install
+        <a href="https://github.com/mahirgul/nssm-rs/releases" class="w-full sm:w-auto flex items-center justify-center px-6 py-3.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-lg shadow-blue-500/30">
+          <i data-lucide="download" class="w-5 h-5 mr-2"></i> Download nssm-rs.exe (v0.1.0)
         </a>
-        <a href="#playground" class="w-full sm:w-auto flex items-center justify-center px-6 py-3 rounded-lg bg-surface-850 hover:bg-surface-800 border border-slate-700 text-slate-200 font-semibold transition-all">
-          <i data-lucide="play" class="w-4 h-4 mr-2 text-amber-400"></i> Try Interactive CLI
+        <a href="#powershell" class="w-full sm:w-auto flex items-center justify-center px-6 py-3.5 rounded-lg bg-surface-850 hover:bg-surface-800 border border-slate-700 text-slate-200 font-semibold transition-all">
+          <i data-lucide="terminal" class="w-4 h-4 mr-2 text-sky-400"></i> View PowerShell Commands
         </a>
       </div>
     </section>
 
-    <!-- Interactive Terminal Playground -->
-    <section id="playground" class="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
+    <!-- Windows PowerShell Interactive Simulation -->
+    <section id="powershell" class="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
       <div class="text-center mb-6">
         <h2 class="text-2xl font-bold text-white tracking-tight flex items-center justify-center">
-          <i data-lucide="terminal" class="w-6 h-6 mr-2 text-amber-400"></i> Interactive CLI Simulation
+          <i data-lucide="terminal" class="w-6 h-6 mr-2 text-sky-400"></i> Windows PowerShell Service Management
         </h2>
-        <p class="text-sm text-slate-400 mt-1">Select a command to test nssm-rs service management in action</p>
+        <p class="text-sm text-slate-400 mt-1">Click a command to see how nssm-rs registers and manages services in Windows Service Control Manager</p>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Command Buttons -->
       <div class="flex flex-wrap gap-2 justify-center mb-4">
-        <button onclick="runCommand('install')" class="px-3 py-1.5 rounded-lg bg-surface-850 hover:bg-surface-750 border border-slate-700 text-xs font-mono text-amber-300 transition-colors">
-          1. install API-Service
+        <button onclick="runPowerShell('install')" class="px-3.5 py-2 rounded-lg bg-surface-850 hover:bg-surface-700 border border-slate-700 text-xs font-mono text-sky-300 transition-colors">
+          1. install Windows Service
         </button>
-        <button onclick="runCommand('stdout')" class="px-3 py-1.5 rounded-lg bg-surface-850 hover:bg-surface-750 border border-slate-700 text-xs font-mono text-sky-300 transition-colors">
-          2. set AppStdout &amp; Rotate
+        <button onclick="runPowerShell('logs')" class="px-3.5 py-2 rounded-lg bg-surface-850 hover:bg-surface-700 border border-slate-700 text-xs font-mono text-emerald-300 transition-colors">
+          2. set AppStdout &amp; Rotation
         </button>
-        <button onclick="runCommand('throttle')" class="px-3 py-1.5 rounded-lg bg-surface-850 hover:bg-surface-750 border border-slate-700 text-xs font-mono text-emerald-300 transition-colors">
+        <button onclick="runPowerShell('throttle')" class="px-3.5 py-2 rounded-lg bg-surface-850 hover:bg-surface-700 border border-slate-700 text-xs font-mono text-amber-300 transition-colors">
           3. set AppThrottle 2000
         </button>
-        <button onclick="runCommand('start')" class="px-3 py-1.5 rounded-lg bg-surface-850 hover:bg-surface-750 border border-slate-700 text-xs font-mono text-purple-300 transition-colors">
-          4. start API-Service
+        <button onclick="runPowerShell('start')" class="px-3.5 py-2 rounded-lg bg-surface-850 hover:bg-surface-700 border border-slate-700 text-xs font-mono text-purple-300 transition-colors">
+          4. start Windows Service
         </button>
-        <button onclick="runCommand('status')" class="px-3 py-1.5 rounded-lg bg-surface-850 hover:bg-surface-750 border border-slate-700 text-xs font-mono text-white transition-colors">
-          5. status API-Service
+        <button onclick="runPowerShell('status')" class="px-3.5 py-2 rounded-lg bg-surface-850 hover:bg-surface-700 border border-slate-700 text-xs font-mono text-white transition-colors">
+          5. status (services.msc)
         </button>
       </div>
 
-      <!-- Mockup Window -->
-      <div class="rounded-xl overflow-hidden shadow-2xl border border-slate-800 bg-surface-900">
-        <div class="bg-surface-850 px-4 py-3 flex items-center justify-between border-b border-slate-800">
+      <!-- Windows Terminal Mockup -->
+      <div class="rounded-xl overflow-hidden border border-slate-700 shadow-2xl bg-slate-900">
+        <!-- Windows Window Titlebar -->
+        <div class="bg-slate-800 px-4 py-2.5 flex items-center justify-between border-b border-slate-700">
           <div class="flex items-center space-x-2">
-            <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
-            <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
-            <span class="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
-            <span class="text-xs font-mono text-slate-400 ml-3">user@server: ~</span>
+            <i data-lucide="terminal" class="w-4 h-4 text-sky-400"></i>
+            <span class="text-xs font-mono text-slate-300 font-medium">Administrator: Windows PowerShell</span>
           </div>
-          <span class="text-xs text-amber-400 font-mono">nssm-rs CLI v0.1.0</span>
+          <div class="flex items-center space-x-3 text-slate-400 text-xs">
+            <span>🗕</span>
+            <span>🗖</span>
+            <span>✕</span>
+          </div>
         </div>
 
-        <div class="p-6 font-mono text-xs sm:text-sm bg-surface-950 text-slate-300 min-h-[220px]" id="cliOutput">
-          <div class="text-slate-500 mb-2"># Click the buttons above to test command execution</div>
-          <div class="text-amber-400">$ nssm-rs install API-Service /usr/bin/node /var/www/app/index.js</div>
-          <div class="text-emerald-400 mt-1">Service configuration saved to "/home/mahir/.nssm-rs/services/API-Service.json"</div>
-          <div class="text-sky-400">Installed systemd unit for service 'API-Service'</div>
-          <div class="text-white font-bold mt-1">Service "API-Service" installed successfully!</div>
+        <!-- PowerShell Body -->
+        <div class="p-6 font-mono text-xs sm:text-sm powershell-window text-slate-100 min-h-[250px]" id="psOutput">
+          <div class="text-slate-400 mb-2">Windows PowerShell<br>Copyright (C) Microsoft Corporation. All rights reserved.<br></div>
+          <div class="text-sky-300 font-semibold">PS C:\Windows\System32> .\nssm-rs.exe install ApiService "C:\Program Files\Nodejs\node.exe" "C:\Apps\Backend\server.js"</div>
+          <div class="text-slate-300 mt-1">Service configuration saved to "C:\ProgramData\nssm-rs\services\ApiService.json"</div>
+          <div class="text-emerald-400 font-bold mt-1">[SCM] Service "ApiService" installed successfully in Windows Service Control Manager!</div>
+          <div class="text-slate-400 text-xs mt-1">Registered in Registry: HKLM\SYSTEM\CurrentControlSet\Services\ApiService</div>
         </div>
       </div>
     </section>
 
-    <!-- Features Section -->
+    <!-- Key Windows Features -->
     <section id="features" class="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
       <div class="text-center mb-12">
-        <h2 class="text-3xl font-extrabold text-white">Robust Features for Mission-Critical Services</h2>
-        <p class="text-slate-400 mt-2">Everything you need to wrap, supervise, and stabilize long-running processes</p>
+        <h2 class="text-3xl font-extrabold text-white">Engineered for Windows Reliability</h2>
+        <p class="text-slate-400 mt-2">Solves all common Windows Service wrapping pain points with modern Rust safety</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Feature 1 -->
+        <div class="glass-card p-6 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-sky-400 flex items-center justify-center mb-4">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Native Windows SCM Integration</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Hooks directly into the Windows Service Control Manager. Visible in <code class="font-mono text-sky-300">services.msc</code>, controllable via <code class="font-mono text-sky-300">sc.exe</code>, PowerShell, or the Services GUI.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
         <div class="glass-card p-6 rounded-xl">
           <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center mb-4">
             <i data-lucide="shield-alert" class="w-5 h-5"></i>
           </div>
           <h3 class="text-lg font-bold text-white mb-2">Crash Throttling (AppThrottle)</h3>
           <p class="text-sm text-slate-400 leading-relaxed">
-            Stops CPU spinning when an application crashes immediately upon startup. Exponential backoff delays restarts until the process demonstrates healthy uptime.
-          </p>
-        </div>
-
-        <!-- Feature 2 -->
-        <div class="glass-card p-6 rounded-xl">
-          <div class="w-10 h-10 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center mb-4">
-            <i data-lucide="rotate-cw" class="w-5 h-5"></i>
-          </div>
-          <h3 class="text-lg font-bold text-white mb-2">Log Rotation (AppRotate)</h3>
-          <p class="text-sm text-slate-400 leading-relaxed">
-            Redirect stdout and stderr to disk files. Automatically rotates logs when they exceed a configurable size (<code class="font-mono text-amber-300">AppRotateBytes</code>) or elapsed time.
+            Prevents catastrophic 100% CPU lockups when a Windows service crashes immediately upon startup. Exponential backoff protects your server from reboot loops.
           </p>
         </div>
 
         <!-- Feature 3 -->
         <div class="glass-card p-6 rounded-xl">
           <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4">
-            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+            <i data-lucide="rotate-cw" class="w-5 h-5"></i>
           </div>
-          <h3 class="text-lg font-bold text-white mb-2">Configurable Exit Actions</h3>
+          <h3 class="text-lg font-bold text-white mb-2">Automatic Log Rotation</h3>
           <p class="text-sm text-slate-400 leading-relaxed">
-            Define process exit behaviors: <code class="font-mono text-amber-300">Restart</code> automatically, <code class="font-mono text-amber-300">Ignore</code>, <code class="font-mono text-amber-300">Exit</code>, or execute clean self-termination.
+            Redirect console stdout/stderr to files with automatic size-based rotation (<code class="font-mono text-sky-300">AppRotateBytes</code>) without locking file handles on Windows.
           </p>
         </div>
 
         <!-- Feature 4 -->
         <div class="glass-card p-6 rounded-xl">
           <div class="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center mb-4">
-            <i data-lucide="layers" class="w-5 h-5"></i>
+            <i data-lucide="cpu" class="w-5 h-5"></i>
           </div>
-          <h3 class="text-lg font-bold text-white mb-2">Windows SCM &amp; systemd</h3>
+          <h3 class="text-lg font-bold text-white mb-2">Process Priority &amp; Affinity</h3>
           <p class="text-sm text-slate-400 leading-relaxed">
-            One tool for all environments. Installs directly as native Windows services via Windows Service Control Manager, or generates clean Linux <code class="font-mono text-amber-300">systemd</code> units.
+            Configure Windows process priority class (Realtime, High, Normal, Idle) and pin background processes to specific CPU core affinity masks.
           </p>
         </div>
 
         <!-- Feature 5 -->
         <div class="glass-card p-6 rounded-xl">
-          <div class="w-10 h-10 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center mb-4">
-            <i data-lucide="terminal" class="w-5 h-5"></i>
+          <div class="w-10 h-10 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center mb-4">
+            <i data-lucide="sliders" class="w-5 h-5"></i>
           </div>
-          <h3 class="text-lg font-bold text-white mb-2">Direct Execution (exec)</h3>
+          <h3 class="text-lg font-bold text-white mb-2">Extra Environment Variables</h3>
           <p class="text-sm text-slate-400 leading-relaxed">
-            Supervise any command on the fly without installing a system service: <code class="font-mono text-amber-300">nssm-rs exec node server.js --rotate</code>.
+            Inject custom environment variables into the service environment via <code class="font-mono text-sky-300">AppEnvironmentExtra</code> without polluting the global Windows System PATH.
           </p>
         </div>
 
@@ -247,15 +258,51 @@
           </div>
           <h3 class="text-lg font-bold text-white mb-2">Graceful Shutdown</h3>
           <p class="text-sm text-slate-400 leading-relaxed">
-            Sends graceful SIGTERM / Ctrl+C signals first, allowing database connections to close, before escalating to SIGKILL only if the child process hangs.
+            Sends Windows Ctrl+C and WM_CLOSE events to allow applications to save state and clean up, with configurable timeout before forcing termination.
           </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Downloads Section -->
+    <section id="downloads" class="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-extrabold text-white">Download nssm-rs for Windows</h2>
+        <p class="text-slate-400 mt-2">Automated release binaries compiled via GitHub Actions on Windows Server runners</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- 64-bit -->
+        <div class="bg-surface-900 border border-slate-800 p-6 rounded-xl flex items-center justify-between">
+          <div>
+            <div class="font-bold text-white flex items-center">
+              <i data-lucide="box" class="w-4 h-4 mr-2 text-sky-400"></i> Windows 64-bit (.exe)
+            </div>
+            <div class="text-xs text-slate-400 mt-1 font-mono">x86_64-pc-windows-msvc (ZIP)</div>
+          </div>
+          <a href="https://github.com/mahirgul/nssm-rs/releases" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold flex items-center">
+            <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> Download
+          </a>
+        </div>
+
+        <!-- 32-bit -->
+        <div class="bg-surface-900 border border-slate-800 p-6 rounded-xl flex items-center justify-between">
+          <div>
+            <div class="font-bold text-white flex items-center">
+              <i data-lucide="box" class="w-4 h-4 mr-2 text-sky-400"></i> Windows 32-bit (.exe)
+            </div>
+            <div class="text-xs text-slate-400 mt-1 font-mono">i686-pc-windows-msvc (ZIP)</div>
+          </div>
+          <a href="https://github.com/mahirgul/nssm-rs/releases" target="_blank" class="px-4 py-2 bg-surface-800 hover:bg-surface-700 border border-slate-700 text-white rounded-lg text-xs font-semibold flex items-center">
+            <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> Download
+          </a>
         </div>
       </div>
     </section>
 
     <!-- Parameters Cheat Sheet -->
     <section id="parameters" class="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
-      <h2 class="text-2xl font-bold text-white mb-6 text-center">NSSM Compatible Parameters</h2>
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">Windows Service Parameter Reference</h2>
       <div class="bg-surface-900 border border-slate-800 rounded-xl overflow-hidden shadow">
         <table class="w-full text-left text-sm">
           <thead class="bg-surface-850 text-slate-400 border-b border-slate-800 font-mono text-xs">
@@ -268,57 +315,57 @@
           </thead>
           <tbody class="divide-y divide-slate-800/60 font-mono text-xs text-slate-300">
             <tr>
-              <td class="py-3 px-4 text-amber-400 font-bold">Application</td>
+              <td class="py-3 px-4 text-sky-400 font-bold">Application</td>
               <td class="py-3 px-4 text-slate-500">Path</td>
-              <td class="py-3 px-4 font-sans">Absolute path to executable</td>
+              <td class="py-3 px-4 font-sans">Full path to Windows binary (e.g. C:\node.exe)</td>
               <td class="py-3 px-4 text-slate-500">—</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-amber-400 font-bold">AppParameters</td>
+              <td class="py-3 px-4 text-sky-400 font-bold">AppParameters</td>
               <td class="py-3 px-4 text-slate-500">String</td>
               <td class="py-3 px-4 font-sans">Command-line arguments passed to application</td>
               <td class="py-3 px-4 text-slate-500">—</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-amber-400 font-bold">AppDirectory</td>
+              <td class="py-3 px-4 text-sky-400 font-bold">AppDirectory</td>
               <td class="py-3 px-4 text-slate-500">Path</td>
               <td class="py-3 px-4 font-sans">Working directory for child process</td>
               <td class="py-3 px-4 text-slate-500">—</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-amber-400 font-bold">AppStdout / AppStderr</td>
+              <td class="py-3 px-4 text-sky-400 font-bold">AppStdout / AppStderr</td>
               <td class="py-3 px-4 text-slate-500">Path</td>
-              <td class="py-3 px-4 font-sans">Redirect stdout and stderr to disk files</td>
+              <td class="py-3 px-4 font-sans">Redirect console output to Windows log files</td>
               <td class="py-3 px-4 text-slate-500">—</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-amber-400 font-bold">AppRotateFiles</td>
+              <td class="py-3 px-4 text-sky-400 font-bold">AppRotateFiles</td>
               <td class="py-3 px-4 text-slate-500">0 | 1</td>
               <td class="py-3 px-4 font-sans">Enable automatic file rotation for stdout/stderr</td>
               <td class="py-3 px-4 text-slate-500">0</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-amber-400 font-bold">AppRotateBytes</td>
+              <td class="py-3 px-4 text-sky-400 font-bold">AppRotateBytes</td>
               <td class="py-3 px-4 text-slate-500">Integer</td>
               <td class="py-3 px-4 font-sans">Rotate log file when size exceeds specified bytes</td>
               <td class="py-3 px-4 text-slate-500">—</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-amber-400 font-bold">AppThrottle</td>
+              <td class="py-3 px-4 text-sky-400 font-bold">AppThrottle</td>
               <td class="py-3 px-4 text-slate-500">Milliseconds</td>
               <td class="py-3 px-4 font-sans">Minimum runtime to clear restart backoff</td>
               <td class="py-3 px-4 text-slate-500">1500</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-amber-400 font-bold">AppExit</td>
+              <td class="py-3 px-4 text-sky-400 font-bold">AppExit</td>
               <td class="py-3 px-4 text-slate-500">Enum</td>
               <td class="py-3 px-4 font-sans">Action on exit: Restart, Ignore, Exit, Suicide</td>
               <td class="py-3 px-4 text-slate-500">Restart</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-amber-400 font-bold">AppEnvironmentExtra</td>
+              <td class="py-3 px-4 text-sky-400 font-bold">AppEnvironmentExtra</td>
               <td class="py-3 px-4 text-slate-500">KEY=VAL</td>
-              <td class="py-3 px-4 font-sans">Inject extra environment variable into process</td>
+              <td class="py-3 px-4 font-sans">Inject extra environment variables into service</td>
               <td class="py-3 px-4 text-slate-500">—</td>
             </tr>
           </tbody>
@@ -328,80 +375,49 @@
 
     <!-- Comparison Table -->
     <section id="comparison" class="py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
-      <h2 class="text-2xl font-bold text-white mb-6 text-center">nssm-rs vs Classic NSSM vs Raw Systemd</h2>
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">nssm-rs vs Classic NSSM</h2>
       <div class="bg-surface-900 border border-slate-800 rounded-xl overflow-hidden shadow">
         <table class="w-full text-left text-sm">
           <thead class="bg-surface-850 text-slate-400 border-b border-slate-800 font-mono text-xs">
             <tr>
               <th class="py-3 px-4">Feature</th>
-              <th class="py-3 px-4 text-amber-400">nssm-rs</th>
-              <th class="py-3 px-4 text-slate-400">Classic C NSSM</th>
-              <th class="py-3 px-4 text-slate-400">Raw systemd</th>
+              <th class="py-3 px-4 text-sky-400">nssm-rs</th>
+              <th class="py-3 px-4 text-slate-400">Original C NSSM</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800/60 font-mono text-xs text-slate-300">
             <tr>
               <td class="py-3 px-4 font-sans font-medium">Memory Safety (Rust)</td>
-              <td class="py-3 px-4 text-emerald-400 font-bold">Yes (100% Rust)</td>
-              <td class="py-3 px-4 text-red-400">No (Legacy C)</td>
-              <td class="py-3 px-4 text-slate-400">N/A</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">100% Rust (Zero Buffer Overflows)</td>
+              <td class="py-3 px-4 text-red-400">Legacy C (Vulnerable)</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 font-sans font-medium">Active Maintenance</td>
-              <td class="py-3 px-4 text-emerald-400 font-bold">Active 2026+</td>
-              <td class="py-3 px-4 text-red-400">Abandoned (2017)</td>
-              <td class="py-3 px-4 text-emerald-400">Active</td>
+              <td class="py-3 px-4 font-sans font-medium">Maintenance &amp; Updates</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">Actively Maintained (2026+)</td>
+              <td class="py-3 px-4 text-red-400">Abandoned since 2017</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 font-sans font-medium">Cross-Platform (Win &amp; Linux)</td>
+              <td class="py-3 px-4 font-sans font-medium">Windows Server 2025 / Win 11 Support</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">Tested &amp; Supported</td>
+              <td class="py-3 px-4 text-yellow-400">Unmaintained compatibility</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-sans font-medium">Crash Throttling (AppThrottle)</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">Yes (Exponential Backoff)</td>
               <td class="py-3 px-4 text-emerald-400 font-bold">Yes</td>
-              <td class="py-3 px-4 text-red-400">Windows Only</td>
-              <td class="py-3 px-4 text-red-400">Linux Only</td>
             </tr>
             <tr>
-              <td class="py-3 px-4 font-sans font-medium">Built-In Log Rotation</td>
-              <td class="py-3 px-4 text-emerald-400 font-bold">Yes (Size &amp; Time)</td>
-              <td class="py-3 px-4 text-yellow-400">Partial</td>
-              <td class="py-3 px-4 text-yellow-400">Requires logrotate</td>
+              <td class="py-3 px-4 font-sans font-medium">Log Rotation by Size &amp; Time</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">Robust Async Rotation</td>
+              <td class="py-3 px-4 text-yellow-400">Prone to Windows file lock crashes</td>
             </tr>
             <tr>
               <td class="py-3 px-4 font-sans font-medium">License</td>
-              <td class="py-3 px-4 text-emerald-400 font-bold">MIT</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">MIT License</td>
               <td class="py-3 px-4 text-slate-400">Public Domain</td>
-              <td class="py-3 px-4 text-slate-400">LGPL</td>
             </tr>
           </tbody>
         </table>
-      </div>
-    </section>
-
-    <!-- Quickstart -->
-    <section id="quickstart" class="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
-      <div class="text-center mb-8">
-        <h2 class="text-3xl font-extrabold text-white">Quick Installation</h2>
-        <p class="text-slate-400 mt-2">Build and run nssm-rs on Linux or Windows</p>
-      </div>
-
-      <div class="space-y-4 font-mono text-sm">
-        <div class="bg-surface-900 border border-slate-800 rounded-lg p-4">
-          <div class="text-xs text-slate-500 font-sans mb-1">Clone &amp; Build with Cargo:</div>
-          <div class="flex items-center justify-between text-amber-300">
-            <code>git clone https://github.com/mahirgul/nssm-rs.git &amp;&amp; cd nssm-rs &amp;&amp; cargo build --release</code>
-            <button onclick="copyCode('git clone https://github.com/mahirgul/nssm-rs.git && cd nssm-rs && cargo build --release')" class="text-slate-400 hover:text-white" title="Copy">
-              <i data-lucide="copy" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="bg-surface-900 border border-slate-800 rounded-lg p-4">
-          <div class="text-xs text-slate-500 font-sans mb-1">Install service with parameters:</div>
-          <div class="flex items-center justify-between text-amber-300">
-            <code>./target/release/nssm-rs install MyService /usr/bin/python3 main.py</code>
-            <button onclick="copyCode('./target/release/nssm-rs install MyService /usr/bin/python3 main.py')" class="text-slate-400 hover:text-white" title="Copy">
-              <i data-lucide="copy" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -410,10 +426,10 @@
       <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center space-x-2">
           <span class="font-bold text-white">nssm-rs</span>
-          <span>— Open-source clean-room service manager.</span>
+          <span>— The Non-Sucking Service Manager for Windows.</span>
         </div>
         <div class="flex items-center space-x-6 text-xs">
-          <span>Licensed under <a href="https://opensource.org/licenses/MIT" target="_blank" class="text-amber-400 hover:underline">MIT</a></span>
+          <span>Licensed under <a href="https://opensource.org/licenses/MIT" target="_blank" class="text-sky-400 hover:underline">MIT</a></span>
           <a href="https://github.com/mahirgul/nssm-rs" class="text-slate-400 hover:text-white flex items-center">
             <i data-lucide="github" class="w-4 h-4 mr-1"></i> GitHub Repository
           </a>
@@ -426,40 +442,37 @@
   <script>
     lucide.createIcons();
 
-    const commandsMap = {
-      install: `<div class="text-amber-400">$ nssm-rs install API-Service /usr/bin/node /var/www/app/index.js</div>
-<div class="text-emerald-400 mt-1">Service configuration saved to "/home/mahir/.nssm-rs/services/API-Service.json"</div>
-<div class="text-sky-400">Installed systemd unit for service 'API-Service'</div>
-<div class="text-white font-bold mt-1">Service "API-Service" installed successfully!</div>`,
+    const psCommandsMap = {
+      install: `<div class="text-slate-400 mb-2">Windows PowerShell<br>Copyright (C) Microsoft Corporation. All rights reserved.<br></div>
+<div class="text-sky-300 font-semibold">PS C:\\Windows\\System32> .\\nssm-rs.exe install ApiService "C:\\Program Files\\Nodejs\\node.exe" "C:\\Apps\\Backend\\server.js"</div>
+<div class="text-slate-300 mt-1">Service configuration saved to "C:\\ProgramData\\nssm-rs\\services\\ApiService.json"</div>
+<div class="text-emerald-400 font-bold mt-1">[SCM] Service "ApiService" installed successfully in Windows Service Control Manager!</div>
+<div class="text-slate-400 text-xs mt-1">Registered in Registry: HKLM\\SYSTEM\\CurrentControlSet\\Services\\ApiService</div>`,
 
-      stdout: `<div class="text-amber-400">$ nssm-rs set API-Service AppStdout /var/log/api.log</div>
-<div class="text-emerald-400">Set parameter "AppStdout" for service "API-Service".</div>
-<div class="text-amber-400 mt-2">$ nssm-rs set API-Service AppRotateFiles 1</div>
-<div class="text-emerald-400">Set parameter "AppRotateFiles" for service "API-Service".</div>
-<div class="text-amber-400 mt-2">$ nssm-rs set API-Service AppRotateBytes 10485760</div>
-<div class="text-emerald-400">Set parameter "AppRotateBytes" (10 MB limit) for service "API-Service".</div>`,
+      logs: `<div class="text-sky-300 font-semibold">PS C:\\Windows\\System32> .\\nssm-rs.exe set ApiService AppStdout "C:\\Logs\\api.stdout.log"</div>
+<div class="text-emerald-400">Set parameter "AppStdout" for service "ApiService".</div>
+<div class="text-sky-300 font-semibold mt-2">PS C:\\Windows\\System32> .\\nssm-rs.exe set ApiService AppRotateFiles 1</div>
+<div class="text-emerald-400">Set parameter "AppRotateFiles" for service "ApiService".</div>
+<div class="text-sky-300 font-semibold mt-2">PS C:\\Windows\\System32> .\\nssm-rs.exe set ApiService AppRotateBytes 10485760</div>
+<div class="text-emerald-400">Set parameter "AppRotateBytes" (10 MB threshold) for service "ApiService".</div>`,
 
-      throttle: `<div class="text-amber-400">$ nssm-rs set API-Service AppThrottle 2000</div>
-<div class="text-emerald-400">Set parameter "AppThrottle" (2000 ms) for service "API-Service".</div>
-<div class="text-slate-400 mt-1"># If the application crashes within 2 seconds of launch, backoff throttling kicks in.</div>`,
+      throttle: `<div class="text-sky-300 font-semibold">PS C:\\Windows\\System32> .\\nssm-rs.exe set ApiService AppThrottle 2000</div>
+<div class="text-emerald-400">Set parameter "AppThrottle" (2000 ms) for service "ApiService".</div>
+<div class="text-slate-300 mt-1"># If node.exe crashes within 2000ms of launch, exponential backoff prevents CPU throttling.</div>`,
 
-      start: `<div class="text-amber-400">$ nssm-rs start API-Service</div>
-<div class="text-sky-400">Executing systemctl start API-Service...</div>
-<div class="text-emerald-400 font-bold mt-1">Service "API-Service" started successfully!</div>
-<div class="text-slate-400">[Supervisor]: Child process spawned with PID 84129</div>`,
+      start: `<div class="text-sky-300 font-semibold">PS C:\\Windows\\System32> .\\nssm-rs.exe start ApiService</div>
+<div class="text-slate-300">[SCM] Calling StartServiceW for "ApiService"...</div>
+<div class="text-emerald-400 font-bold mt-1">Service "ApiService" started successfully!</div>
+<div class="text-slate-400">[Supervisor]: Process spawned with Windows PID 4128</div>`,
 
-      status: `<div class="text-amber-400">$ nssm-rs status API-Service</div>
-<div class="text-emerald-400 font-bold mt-1 text-base">SERVICE_RUNNING (PID: 84129)</div>
-<div class="text-slate-400 mt-1">Uptime: 00:14:32 | Restarts: 0 | Throttle: OK</div>`
+      status: `<div class="text-sky-300 font-semibold">PS C:\\Windows\\System32> .\\nssm-rs.exe status ApiService</div>
+<div class="text-emerald-400 font-bold mt-1 text-base">SERVICE_RUNNING</div>
+<div class="text-slate-300 mt-1">DisplayName: ApiService | StartType: AUTO_START | PID: 4128</div>
+<div class="text-slate-400 text-xs">Visible in services.msc as "Running"</div>`
     };
 
-    function runCommand(cmd) {
-      document.getElementById('cliOutput').innerHTML = commandsMap[cmd];
-    }
-
-    function copyCode(text) {
-      navigator.clipboard.writeText(text);
-      alert('Copied to clipboard: ' + text);
+    function runPowerShell(cmd) {
+      document.getElementById('psOutput').innerHTML = psCommandsMap[cmd];
     }
   </script>
 </body>
