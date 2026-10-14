@@ -2,10 +2,11 @@
 name = "nssm-rs"
 version = "0.1.0"
 edition = "2024"
-authors = ["nssm-rs Contributors"]
+authors = ["Mahir Gül <mahirgul@gmail.com>"]
 description = "A modern, reliable service manager and process supervisor inspired by NSSM, written in Rust"
 license = "MIT"
 readme = "README.md"
+homepage = "https://mahirgul.github.io/nssm-rs/"
 repository = "https://github.com/mahirgul/nssm-rs"
 keywords = ["nssm", "service", "supervisor", "daemon", "windows-service"]
 categories = ["command-line-utilities", "os"]
