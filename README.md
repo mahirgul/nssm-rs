@@ -1,5 +1,6 @@
 # nssm-rs 🦀
 
+[![Crates.io](https://img.shields.io/crates/v/nssm-rs.svg)](https://crates.io/crates/nssm-rs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-stable-brightgreen.svg)](https://www.rust-lang.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20(x64%20%7C%20x86)-0078d4.svg)](https://github.com/mahirgul/nssm-rs/releases)
