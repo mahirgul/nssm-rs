@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-stable-brightgreen.svg)](https://www.rust-lang.org/)
+[![Website](https://img.shields.io/badge/Live-Demo%20%26%20Docs-amber.svg)](docs/index.html)
 
 A modern, memory-safe, reliable service manager and process supervisor inspired by **NSSM (Non-Sucking Service Manager)**, written in pure Rust.
 
