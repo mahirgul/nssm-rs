@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nssm-rs — The Non-Sucking Service Manager Reborn in Rust</title>
+  <meta name="description" content="Clean-room MIT-licensed service manager and process supervisor inspired by NSSM. Supports Windows Service Control Manager, Linux systemd, and automatic crash throttling.">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              400: '#f59e0b',
+              500: '#d97706',
+              600: '#b45309',
+            },
+            accent: {
+              400: '#38bdf8',
+              500: '#0284c7',
+            },
+            surface: {
+              950: '#090b10',
+              900: '#0e121a',
+              850: '#141a26',
+              800: '#1b2333',
+              700: '#273248',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::selection { background: #f59e0b; color: #090b10; }
+    .glass-card {
+      background: rgba(14, 18, 26, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(245, 158, 11, 0.12);
+    }
+  </style>
+</head>
+<body class="bg-surface-950 text-slate-100 font-sans antialiased selection:bg-brand-400 selection:text-black">
+
+  <!-- Glow Background -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-40 right-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 -left-40 w-96 h-96 bg-sky-600/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="relative z-10 flex flex-col min-h-screen">
+
+    <!-- Navbar -->
+    <header class="border-b border-slate-800/80 bg-surface-950/80 backdrop-blur sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 font-bold text-surface-950">
+            <i data-lucide="cog" class="w-5 h-5"></i>
+          </div>
+          <span class="font-bold text-xl tracking-tight text-white flex items-center">
+            nssm<span class="text-amber-400">-rs</span>
+          </span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono">v0.1.0</span>
+        </div>
+
+        <nav class="hidden md:flex items-center space-x-8 text-sm text-slate-300 font-medium">
+          <a href="#features" class="hover:text-amber-400 transition-colors">Features</a>
+          <a href="#playground" class="hover:text-amber-400 transition-colors">Interactive CLI</a>
+          <a href="#parameters" class="hover:text-amber-400 transition-colors">Parameters</a>
+          <a href="#quickstart" class="hover:text-amber-400 transition-colors">Quickstart</a>
+          <a href="#comparison" class="hover:text-amber-400 transition-colors">Comparison</a>
+        </nav>
+
+        <div class="flex items-center space-x-3">
+          <a href="https://github.com/mahir/nssm-rs" target="_blank" class="flex items-center space-x-2 text-xs font-semibold px-4 py-2 rounded-lg bg-surface-800 hover:bg-surface-700 border border-slate-700 text-slate-200 transition-all">
+            <i data-lucide="github" class="w-4 h-4"></i>
+            <span>GitHub</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center max-w-5xl mx-auto">
+      <div class="flex flex-wrap items-center justify-center gap-2 mb-6">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1.5"></i> MIT Licensed
+        </span>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <i data-lucide="shield" class="w-3.5 h-3.5 mr-1.5"></i> Clean-Room Implementation
+        </span>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20">
+          Windows SCM &amp; Linux systemd
+        </span>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+          Crash Throttle Engine
+        </span>
+      </div>
+
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+        The Non-Sucking Service Manager <br><span class="bg-gradient-to-r from-amber-400 via-orange-400 to-sky-400 bg-clip-text text-transparent">Reborn in Rust</span>
+      </h1>
+      <p class="text-lg sm:text-xl text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed font-light">
+        Transform any console application, script, or executable into a reliable background system service. Featuring automatic restart throttling, file log rotation, and graceful signal handling.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#quickstart" class="w-full sm:w-auto flex items-center justify-center px-6 py-3 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-surface-950 font-bold transition-all shadow-lg shadow-amber-500/25">
+          <i data-lucide="terminal" class="w-5 h-5 mr-2"></i> Quick Install
+        </a>
+        <a href="#playground" class="w-full sm:w-auto flex items-center justify-center px-6 py-3 rounded-lg bg-surface-850 hover:bg-surface-800 border border-slate-700 text-slate-200 font-semibold transition-all">
+          <i data-lucide="play" class="w-4 h-4 mr-2 text-amber-400"></i> Try Interactive CLI
+        </a>
+      </div>
+    </section>
+
+    <!-- Interactive Terminal Playground -->
+    <section id="playground" class="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
+      <div class="text-center mb-6">
+        <h2 class="text-2xl font-bold text-white tracking-tight flex items-center justify-center">
+          <i data-lucide="terminal" class="w-6 h-6 mr-2 text-amber-400"></i> Interactive CLI Simulation
+        </h2>
+        <p class="text-sm text-slate-400 mt-1">Select a command to test nssm-rs service management in action</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-2 justify-center mb-4">
+        <button onclick="runCommand('install')" class="px-3 py-1.5 rounded-lg bg-surface-850 hover:bg-surface-750 border border-slate-700 text-xs font-mono text-amber-300 transition-colors">
+          1. install API-Service
+        </button>
+        <button onclick="runCommand('stdout')" class="px-3 py-1.5 rounded-lg bg-surface-850 hover:bg-surface-750 border border-slate-700 text-xs font-mono text-sky-300 transition-colors">
+          2. set AppStdout &amp; Rotate
+        </button>
+        <button onclick="runCommand('throttle')" class="px-3 py-1.5 rounded-lg bg-surface-850 hover:bg-surface-750 border border-slate-700 text-xs font-mono text-emerald-300 transition-colors">
+          3. set AppThrottle 2000
+        </button>
+        <button onclick="runCommand('start')" class="px-3 py-1.5 rounded-lg bg-surface-850 hover:bg-surface-750 border border-slate-700 text-xs font-mono text-purple-300 transition-colors">
+          4. start API-Service
+        </button>
+        <button onclick="runCommand('status')" class="px-3 py-1.5 rounded-lg bg-surface-850 hover:bg-surface-750 border border-slate-700 text-xs font-mono text-white transition-colors">
+          5. status API-Service
+        </button>
+      </div>
+
+      <!-- Mockup Window -->
+      <div class="rounded-xl overflow-hidden shadow-2xl border border-slate-800 bg-surface-900">
+        <div class="bg-surface-850 px-4 py-3 flex items-center justify-between border-b border-slate-800">
+          <div class="flex items-center space-x-2">
+            <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
+            <span class="text-xs font-mono text-slate-400 ml-3">user@server: ~</span>
+          </div>
+          <span class="text-xs text-amber-400 font-mono">nssm-rs CLI v0.1.0</span>
+        </div>
+
+        <div class="p-6 font-mono text-xs sm:text-sm bg-surface-950 text-slate-300 min-h-[220px]" id="cliOutput">
+          <div class="text-slate-500 mb-2"># Click the buttons above to test command execution</div>
+          <div class="text-amber-400">$ nssm-rs install API-Service /usr/bin/node /var/www/app/index.js</div>
+          <div class="text-emerald-400 mt-1">Service configuration saved to "/home/mahir/.nssm-rs/services/API-Service.json"</div>
+          <div class="text-sky-400">Installed systemd unit for service 'API-Service'</div>
+          <div class="text-white font-bold mt-1">Service "API-Service" installed successfully!</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-extrabold text-white">Robust Features for Mission-Critical Services</h2>
+        <p class="text-slate-400 mt-2">Everything you need to wrap, supervise, and stabilize long-running processes</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Feature 1 -->
+        <div class="glass-card p-6 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center mb-4">
+            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Crash Throttling (AppThrottle)</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Stops CPU spinning when an application crashes immediately upon startup. Exponential backoff delays restarts until the process demonstrates healthy uptime.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="glass-card p-6 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center mb-4">
+            <i data-lucide="rotate-cw" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Log Rotation (AppRotate)</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Redirect stdout and stderr to disk files. Automatically rotates logs when they exceed a configurable size (<code class="font-mono text-amber-300">AppRotateBytes</code>) or elapsed time.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="glass-card p-6 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4">
+            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Configurable Exit Actions</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Define process exit behaviors: <code class="font-mono text-amber-300">Restart</code> automatically, <code class="font-mono text-amber-300">Ignore</code>, <code class="font-mono text-amber-300">Exit</code>, or execute clean self-termination.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="glass-card p-6 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center mb-4">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Windows SCM &amp; systemd</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            One tool for all environments. Installs directly as native Windows services via Windows Service Control Manager, or generates clean Linux <code class="font-mono text-amber-300">systemd</code> units.
+          </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="glass-card p-6 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center mb-4">
+            <i data-lucide="terminal" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Direct Execution (exec)</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Supervise any command on the fly without installing a system service: <code class="font-mono text-amber-300">nssm-rs exec node server.js --rotate</code>.
+          </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="glass-card p-6 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center mb-4">
+            <i data-lucide="power" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Graceful Shutdown</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Sends graceful SIGTERM / Ctrl+C signals first, allowing database connections to close, before escalating to SIGKILL only if the child process hangs.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Parameters Cheat Sheet -->
+    <section id="parameters" class="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">NSSM Compatible Parameters</h2>
+      <div class="bg-surface-900 border border-slate-800 rounded-xl overflow-hidden shadow">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-surface-850 text-slate-400 border-b border-slate-800 font-mono text-xs">
+            <tr>
+              <th class="py-3 px-4">Parameter</th>
+              <th class="py-3 px-4">Type</th>
+              <th class="py-3 px-4">Description</th>
+              <th class="py-3 px-4">Default</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 font-mono text-xs text-slate-300">
+            <tr>
+              <td class="py-3 px-4 text-amber-400 font-bold">Application</td>
+              <td class="py-3 px-4 text-slate-500">Path</td>
+              <td class="py-3 px-4 font-sans">Absolute path to executable</td>
+              <td class="py-3 px-4 text-slate-500">—</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 text-amber-400 font-bold">AppParameters</td>
+              <td class="py-3 px-4 text-slate-500">String</td>
+              <td class="py-3 px-4 font-sans">Command-line arguments passed to application</td>
+              <td class="py-3 px-4 text-slate-500">—</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 text-amber-400 font-bold">AppDirectory</td>
+              <td class="py-3 px-4 text-slate-500">Path</td>
+              <td class="py-3 px-4 font-sans">Working directory for child process</td>
+              <td class="py-3 px-4 text-slate-500">—</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 text-amber-400 font-bold">AppStdout / AppStderr</td>
+              <td class="py-3 px-4 text-slate-500">Path</td>
+              <td class="py-3 px-4 font-sans">Redirect stdout and stderr to disk files</td>
+              <td class="py-3 px-4 text-slate-500">—</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 text-amber-400 font-bold">AppRotateFiles</td>
+              <td class="py-3 px-4 text-slate-500">0 | 1</td>
+              <td class="py-3 px-4 font-sans">Enable automatic file rotation for stdout/stderr</td>
+              <td class="py-3 px-4 text-slate-500">0</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 text-amber-400 font-bold">AppRotateBytes</td>
+              <td class="py-3 px-4 text-slate-500">Integer</td>
+              <td class="py-3 px-4 font-sans">Rotate log file when size exceeds specified bytes</td>
+              <td class="py-3 px-4 text-slate-500">—</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 text-amber-400 font-bold">AppThrottle</td>
+              <td class="py-3 px-4 text-slate-500">Milliseconds</td>
+              <td class="py-3 px-4 font-sans">Minimum runtime to clear restart backoff</td>
+              <td class="py-3 px-4 text-slate-500">1500</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 text-amber-400 font-bold">AppExit</td>
+              <td class="py-3 px-4 text-slate-500">Enum</td>
+              <td class="py-3 px-4 font-sans">Action on exit: Restart, Ignore, Exit, Suicide</td>
+              <td class="py-3 px-4 text-slate-500">Restart</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 text-amber-400 font-bold">AppEnvironmentExtra</td>
+              <td class="py-3 px-4 text-slate-500">KEY=VAL</td>
+              <td class="py-3 px-4 font-sans">Inject extra environment variable into process</td>
+              <td class="py-3 px-4 text-slate-500">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Comparison Table -->
+    <section id="comparison" class="py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">nssm-rs vs Classic NSSM vs Raw Systemd</h2>
+      <div class="bg-surface-900 border border-slate-800 rounded-xl overflow-hidden shadow">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-surface-850 text-slate-400 border-b border-slate-800 font-mono text-xs">
+            <tr>
+              <th class="py-3 px-4">Feature</th>
+              <th class="py-3 px-4 text-amber-400">nssm-rs</th>
+              <th class="py-3 px-4 text-slate-400">Classic C NSSM</th>
+              <th class="py-3 px-4 text-slate-400">Raw systemd</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 font-mono text-xs text-slate-300">
+            <tr>
+              <td class="py-3 px-4 font-sans font-medium">Memory Safety (Rust)</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">Yes (100% Rust)</td>
+              <td class="py-3 px-4 text-red-400">No (Legacy C)</td>
+              <td class="py-3 px-4 text-slate-400">N/A</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-sans font-medium">Active Maintenance</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">Active 2026+</td>
+              <td class="py-3 px-4 text-red-400">Abandoned (2017)</td>
+              <td class="py-3 px-4 text-emerald-400">Active</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-sans font-medium">Cross-Platform (Win &amp; Linux)</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">Yes</td>
+              <td class="py-3 px-4 text-red-400">Windows Only</td>
+              <td class="py-3 px-4 text-red-400">Linux Only</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-sans font-medium">Built-In Log Rotation</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">Yes (Size &amp; Time)</td>
+              <td class="py-3 px-4 text-yellow-400">Partial</td>
+              <td class="py-3 px-4 text-yellow-400">Requires logrotate</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-sans font-medium">License</td>
+              <td class="py-3 px-4 text-emerald-400 font-bold">MIT</td>
+              <td class="py-3 px-4 text-slate-400">Public Domain</td>
+              <td class="py-3 px-4 text-slate-400">LGPL</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Quickstart -->
+    <section id="quickstart" class="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-extrabold text-white">Quick Installation</h2>
+        <p class="text-slate-400 mt-2">Build and run nssm-rs on Linux or Windows</p>
+      </div>
+
+      <div class="space-y-4 font-mono text-sm">
+        <div class="bg-surface-900 border border-slate-800 rounded-lg p-4">
+          <div class="text-xs text-slate-500 font-sans mb-1">Clone &amp; Build with Cargo:</div>
+          <div class="flex items-center justify-between text-amber-300">
+            <code>git clone https://github.com/mahir/nssm-rs.git &amp;&amp; cd nssm-rs &amp;&amp; cargo build --release</code>
+            <button onclick="copyCode('git clone https://github.com/mahir/nssm-rs.git && cd nssm-rs && cargo build --release')" class="text-slate-400 hover:text-white" title="Copy">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-surface-900 border border-slate-800 rounded-lg p-4">
+          <div class="text-xs text-slate-500 font-sans mb-1">Install service with parameters:</div>
+          <div class="flex items-center justify-between text-amber-300">
+            <code>./target/release/nssm-rs install MyService /usr/bin/python3 main.py</code>
+            <button onclick="copyCode('./target/release/nssm-rs install MyService /usr/bin/python3 main.py')" class="text-slate-400 hover:text-white" title="Copy">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-800/80 bg-surface-950 py-10 px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-2">
+          <span class="font-bold text-white">nssm-rs</span>
+          <span>— Open-source clean-room service manager.</span>
+        </div>
+        <div class="flex items-center space-x-6 text-xs">
+          <span>Licensed under <a href="https://opensource.org/licenses/MIT" target="_blank" class="text-amber-400 hover:underline">MIT</a></span>
+          <a href="https://github.com/mahir/nssm-rs" class="text-slate-400 hover:text-white flex items-center">
+            <i data-lucide="github" class="w-4 h-4 mr-1"></i> GitHub Repository
+          </a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const commandsMap = {
+      install: `<div class="text-amber-400">$ nssm-rs install API-Service /usr/bin/node /var/www/app/index.js</div>
+<div class="text-emerald-400 mt-1">Service configuration saved to "/home/mahir/.nssm-rs/services/API-Service.json"</div>
+<div class="text-sky-400">Installed systemd unit for service 'API-Service'</div>
+<div class="text-white font-bold mt-1">Service "API-Service" installed successfully!</div>`,
+
+      stdout: `<div class="text-amber-400">$ nssm-rs set API-Service AppStdout /var/log/api.log</div>
+<div class="text-emerald-400">Set parameter "AppStdout" for service "API-Service".</div>
+<div class="text-amber-400 mt-2">$ nssm-rs set API-Service AppRotateFiles 1</div>
+<div class="text-emerald-400">Set parameter "AppRotateFiles" for service "API-Service".</div>
+<div class="text-amber-400 mt-2">$ nssm-rs set API-Service AppRotateBytes 10485760</div>
+<div class="text-emerald-400">Set parameter "AppRotateBytes" (10 MB limit) for service "API-Service".</div>`,
+
+      throttle: `<div class="text-amber-400">$ nssm-rs set API-Service AppThrottle 2000</div>
+<div class="text-emerald-400">Set parameter "AppThrottle" (2000 ms) for service "API-Service".</div>
+<div class="text-slate-400 mt-1"># If the application crashes within 2 seconds of launch, backoff throttling kicks in.</div>`,
+
+      start: `<div class="text-amber-400">$ nssm-rs start API-Service</div>
+<div class="text-sky-400">Executing systemctl start API-Service...</div>
+<div class="text-emerald-400 font-bold mt-1">Service "API-Service" started successfully!</div>
+<div class="text-slate-400">[Supervisor]: Child process spawned with PID 84129</div>`,
+
+      status: `<div class="text-amber-400">$ nssm-rs status API-Service</div>
+<div class="text-emerald-400 font-bold mt-1 text-base">SERVICE_RUNNING (PID: 84129)</div>
+<div class="text-slate-400 mt-1">Uptime: 00:14:32 | Restarts: 0 | Throttle: OK</div>`
+    };
+
+    function runCommand(cmd) {
+      document.getElementById('cliOutput').innerHTML = commandsMap[cmd];
+    }
+
+    function copyCode(text) {
+      navigator.clipboard.writeText(text);
+      alert('Copied to clipboard: ' + text);
+    }
+  </script>
+</body>
+</html>
