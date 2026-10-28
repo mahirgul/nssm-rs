@@ -162,3 +162,12 @@ nssm-rs
 ## 📄 License
 
 Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
+
+---
+
+## ☁️ Cloud Infrastructure Partner
+
+[![UpCloud](https://img.shields.io/badge/UpCloud-$250_Free_Credit-7b1fa2?style=flat&logo=cloud&logoColor=white)](https://signup.upcloud.com/?promo=affiliate-aipbx250&amp;utm_source=aipbx&amp;utm_medium=affiliate&amp;utm_campaign=affiliate-aipbx250)
+
+Need high-performance cloud servers to deploy Windows Server or Linux daemons? Check out **[UpCloud](https://signup.upcloud.com/?promo=affiliate-aipbx250&amp;utm_source=aipbx&amp;utm_medium=affiliate&amp;utm_campaign=affiliate-aipbx250)** (fast MaxIOPS storage). Get **$250 in free cloud credits** with promo code `affiliate-aipbx250`.
+
